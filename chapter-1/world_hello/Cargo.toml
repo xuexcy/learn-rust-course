@@ -1,0 +1,10 @@
+[package]
+name = "world_hello"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# rand = "0.3"
+# hammer = { version = "0.5.0"}
+# color = { git = "https://github.com/bjz/color-rs"}
+# geometry = { path = "crates/geometry"}
