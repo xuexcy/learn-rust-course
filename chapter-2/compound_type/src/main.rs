@@ -1,5 +1,6 @@
 #![allow(unused_variables)]
 
+use std::io;
 use std::str;
 
 fn type_of<T>(_: &T) -> String {
@@ -18,6 +19,11 @@ where
 fn main() {
     call(compound_type);
     call(string_and_slice);
+    call(tuple);
+    call(learning_struct);
+    call(learning_enum);
+    call(array);
+
 }
 
 type File = String;
@@ -190,3 +196,189 @@ fn greet(name: String) {
     println!("Hello, {}!", name);
 }
 
+fn tuple() {
+    let tup: (i32, f64, u8) = (500, 6.4, 1);
+    let (x, y, z) = &tup;
+    println!("The value of y is: {}", y);
+
+    let five_hundred = &tup.0;
+
+    let s1 = String::from("hello");
+    let (s2, len) = calculate_length(s1);
+    println!("The length of '{}' is {}", s2, len);
+}
+fn calculate_length(s: String) -> (String, usize) {
+    let length = s.len();
+    (s, length)
+}
+
+struct User {
+    active: bool,
+    username: String,
+    email: String,
+    sign_in_count: u64,
+}
+
+fn learning_struct() {
+
+    let mut user1 = User {
+        email: String::from("someone@example.com"),
+        username: String::from("someone"),
+        active: true,
+        sign_in_count: 1,
+    };
+    user1.email = String::from("anotheremail@example.com");
+
+    let user2 = User {
+        email: String::from("another@example.com"),
+        ..user1
+    };
+
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    println!("rect1 is {:?}", rect1);
+    println!("rect1 is {:#?}", rect1);
+
+    // output to stderr
+    dbg!(&rect1);
+}
+
+fn build_user(email: String, username: String) -> User {
+    User {
+        email,
+        username,
+        active: true,
+        sign_in_count: 1,
+    }
+}
+
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn learning_enum() {
+    let heart = PokerSuit::Hearts;
+    let diamond = PokerSuit::Diamonds;
+    print_suit(heart);
+    print_suit(diamond);
+
+    let c1 = PokerCard {
+        suit: PokerSuit::Clubs,
+        value: 1,
+    };
+
+    let c2 = PokerCard {
+        suit: PokerSuit::Diamonds,
+        value: 12,
+    };
+    let c1 = PokerCardV2::Spades(5);
+    let c2 = PokerCardV2::Diamonds(10);
+
+    let m1 = Message::Quit;
+    let m2 = Message::Move{ x: 1, y: 1 };
+    let m3 = Message::ChangeColor(255, 255, 0);
+
+    let some_number = Some(5);
+    let some_string = Some("a string");
+    let absent_number: Option<i32> = None;
+
+    let five = Some(5);
+    let six = plus_one(five);
+    let none = plus_one(None);
+
+}
+#[derive(Debug)]
+enum PokerSuit {
+    Clubs,
+    Spades,
+    Diamonds,
+    Hearts,
+}
+struct PokerCard {
+    suit: PokerSuit,
+    value: u8,
+}
+enum PokerCardV2 {
+    Clubs(u8),
+    Spades(u8),
+    Diamonds(u8),
+    Hearts(u8),
+}
+fn print_suit(card: PokerSuit) {
+    println!("{:?}", card);
+}
+
+struct Ipv4Addr {}
+struct Ipv6Addr {}
+enum IpAddr {
+    V4(Ipv4Addr),
+    V6(Ipv6Addr),
+}
+enum Message {
+    Quit,
+    Move { x: i32, y: i32 },
+    Write(String),
+    ChangeColor(i32, i32, i32),
+}
+fn plus_one(x: Option<i32>) -> Option<i32> {
+    match x {
+        None => None,
+        Some(i) => Some(i + 1),
+    }
+}
+
+fn array() {
+    let a: [i32; 5] = [1, 2, 3, 4, 5];
+    let a = [3; 5];  // [3, 3, 3, 3, 3]
+    let a = [1, 2, 3, 4, 5];
+    println!("Please enter an array index.");
+
+    // let array = [String::from("rust is good!"); 8];
+    let array = [
+        String::from("rust is good!"),
+        String::from("rust is good!"),
+        String::from("rust is good!"),
+        String::from("rust is good!"),
+        String::from("rust is good!"),
+    ];
+    println!("{:#?}", array);
+    // std::array::from_fn
+    let array: [String; 8] = std::array::from_fn(|_i| String::from("rust is good!"));
+    println!("{:#?}", array);
+    let a: [i32; 5] = [1, 2, 3, 4, 5];
+    let slice: &[i32] = &a[1..3];
+    assert_eq!(slice, &[2, 3]);
+
+    let one = [1, 2, 3];
+    let two: [u8; 3] = [1, 2, 3];
+    let blank1 = [0; 3];
+    let blank2: [u8; 3] = [0; 3];
+    let arrays: [[u8; 3]; 4] = [one, two, blank1, blank2];
+    for a in arrays {
+        print!("{:?}: ", a);
+        for n in a.iter() {
+            print!("\t{} + 10 = {}", n, n + 10);
+        }
+        let mut sum = 0;
+        for i in 0..a.len() {
+            sum += a[i];
+        }
+        println!("\t({:?} = {})", a, sum);
+    }
+
+
+    let mut index = String::new();
+    io::stdin()
+        .read_line(&mut index)
+        .expect("Failed to read line");
+
+    let index: usize = index
+        .trim()
+        .parse()
+        .expect("Index entered was not a number");
+    let element = a[index];
+}
