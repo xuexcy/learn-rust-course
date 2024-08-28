@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::ops::Add;
+use std::string::ParseError;
 
 fn type_of<T>(_: &T) -> String {
     format!("{}", std::any::type_name::<T>())
@@ -11,11 +12,13 @@ where
 {
     println!("Start {}", type_of(&f));
     f();
-    println!("End{}", type_of(&f));
+    println!("End {}", type_of(&f));
 }
 fn main() {
     call(generic);
     call(the_trait);
+    call(trait_object);
+    call(more_trait);
 }
 
 fn add<T: std::ops::Add<Output = T>>(a: T, b: T) -> T {
@@ -278,4 +281,186 @@ fn the_trait() {
     let f6 = File::new("f6.txt");
     println!("{:?}", f6);
     println!("{}", f6);
+}
+
+pub trait Draw {
+    fn draw(&self)-> String;
+}
+pub struct Button {
+    pub width: u32,
+    pub height: u32,
+    pub label: String,
+}
+impl Draw for Button {
+    fn draw(&self) -> String {
+        format!(
+            "Button: width[{}], height[{}], label[{}]",
+            self.width, self.height, self.label)
+    }
+}
+struct SelectBox {
+    width: u32,
+    height: u32,
+    options: Vec<String>,
+}
+impl Draw for SelectBox {
+    fn draw(&self) -> String {
+        format!(
+            "SelectBox: width[{}], height[{}], options[{}]",
+            self.width, self.height, self.options.join(", "))
+    }
+}
+impl Draw for u8 {
+    fn draw(&self) -> String {
+        format!("u8: {}", *self)
+    }
+}
+impl Draw for f64 {
+    fn draw(&self)-> String {
+        format!("f64: {}", *self)
+    }
+}
+fn draw1(x: Box<dyn Draw>) {
+    x.draw();
+}
+fn draw2(x: &dyn Draw) {
+    x.draw();
+}
+pub struct Screen {
+    pub components: Vec<Box<dyn Draw>>,
+}
+impl Screen {
+    pub fn run(&self) {
+        for component in self.components.iter() {
+            println!("{}", component.draw());
+        }
+    }
+}
+fn trait_object() {
+    let x = 1.1_f64;
+    let y = 8_u8;
+    draw1(Box::new(x));
+    draw1(Box::new(y));
+    draw2(&x);
+    draw2(&y);
+    let screen = Screen {
+        components: vec![
+            Box::new(SelectBox {
+                width: 75,
+                height: 10,
+                options: vec![
+                    String::from("Yes"),
+                    String::from("Maybe"),
+                    String::from("No"),
+                ]
+            }),
+            Box::new(Button {
+                width: 50,
+                height: 10,
+                label: String::from("OK"),
+            })
+        ]
+    };
+    screen.run();
+}
+pub trait Iterator {
+    type Item;
+    fn next(&mut self) -> Option<Self::Item>;
+}
+struct Counter;
+impl Iterator for Counter {
+    type Item = u32;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(1)
+    }
+}
+
+trait Container {
+    type A;
+    type B;
+    fn contains(&self, a: &Self::A, b: &Self::B) -> bool;
+
+}
+trait MyAdd<RHS=Self> {
+    type Output;
+    fn add(self, rhs: RHS) -> Self::Output;
+}
+struct Millimeters(u32);
+struct Meters(u32);
+impl Add<Meters> for Millimeters {
+    type Output = Millimeters;
+    fn add(self, other: Meters) -> Millimeters {
+        Millimeters(self.0 + (other.0 * 1000))
+    }
+}
+trait Pilot {
+    fn fly(&self);
+}
+trait Wizard {
+    fn fly(&self);
+}
+struct Human;
+impl Pilot for Human {
+    fn fly(&self) {
+        println!("fly as pilot");
+    }
+}
+impl Wizard for Human {
+    fn fly(&self) {
+        println!("fly as wizard");
+    }
+}
+impl Human {
+    fn fly(&self) {
+        println!("fly as human");
+    }
+
+}
+trait Animal {
+    fn baby_name() -> String;
+}
+struct Dog;
+impl Dog {
+    fn baby_name() -> String {
+        String::from("spot")
+    }
+}
+impl Animal for Dog {
+    fn baby_name() -> String {
+        String::from("puppy")
+    }
+}
+
+trait OutlinePrint: Display {
+    fn outline_print(&self) {
+        let output = self.to_string();
+        let len = output.len();
+        println!("{}", "*".repeat(len + 4));
+        println!("*{}*", " ".repeat(len + 2));
+        println!("* {} *", output);
+        println!("*{}*", " ".repeat(len + 2));
+        println!("{}", "*".repeat(len + 4));
+    }
+}
+impl<T> Display for Point<T>
+where
+    T: Display {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+impl<T> OutlinePrint for Point<T>
+where
+    T: Display
+{
+}
+fn more_trait() {
+    let mut c = Counter;
+    println!("next: {:?}", c.next());
+    let person = Human;
+    person.fly();
+    Pilot::fly(&person);
+    Wizard::fly(&person);
+    println!("dog name: {}", Dog::baby_name());
+    println!("dog name: {}", <Dog as Animal>::baby_name());
 }
