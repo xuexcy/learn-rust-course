@@ -1,0 +1,9 @@
+[package]
+name = "return_value_and_error_process"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[profile.release]
+panic = 'abort'
